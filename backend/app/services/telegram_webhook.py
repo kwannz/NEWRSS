@@ -1,39 +1,48 @@
 from fastapi import APIRouter, Request, Header, HTTPException
+from contextlib import asynccontextmanager
 from telegram import Update
 from telegram.ext import Application
+from typing import Optional
 from app.core.settings import settings
 from app.services.telegram_bot import TelegramBot
 
-router = APIRouter()
+# Global variable to store the Telegram application
+telegram_app: Application = None
 
-# Initialize Telegram bot instance
-bot = TelegramBot(settings.TELEGRAM_BOT_TOKEN)
-application: Application = bot.app
-
-@router.on_event("startup")
-async def startup():
-    """Initialize Telegram bot on startup"""
-    await application.initialize()
-    await application.start()
+@asynccontextmanager
+async def telegram_lifespan():
+    """Lifespan context manager for Telegram bot"""
+    global telegram_app
     
-    if settings.TELEGRAM_WEBHOOK_URL:
-        await application.bot.set_webhook(
-            url=settings.TELEGRAM_WEBHOOK_URL,
-            secret_token=settings.TELEGRAM_SECRET_TOKEN,
-            drop_pending_updates=True,
-        )
-        print(f"Telegram webhook set to: {settings.TELEGRAM_WEBHOOK_URL}")
+    try:
+        if settings.TELEGRAM_BOT_TOKEN:
+            bot = TelegramBot(settings.TELEGRAM_BOT_TOKEN)
+            telegram_app = bot.app
+            
+            await telegram_app.initialize()
+            await telegram_app.start()
+            
+            if settings.TELEGRAM_WEBHOOK_URL:
+                await telegram_app.bot.set_webhook(
+                    url=settings.TELEGRAM_WEBHOOK_URL,
+                    secret_token=settings.TELEGRAM_SECRET_TOKEN,
+                    drop_pending_updates=True,
+                )
+                print(f"Telegram webhook set to: {settings.TELEGRAM_WEBHOOK_URL}")
+        
+        yield
+        
+    finally:
+        if telegram_app:
+            await telegram_app.stop()
+            await telegram_app.shutdown()
 
-@router.on_event("shutdown")
-async def shutdown():
-    """Cleanup on shutdown"""
-    await application.stop()
-    await application.shutdown()
+router = APIRouter()
 
 @router.post("/telegram/webhook")
 async def telegram_webhook(
     request: Request,
-    x_telegram_bot_api_secret_token: str | None = Header(default=None),
+    x_telegram_bot_api_secret_token: Optional[str] = Header(default=None),
 ):
     """Handle Telegram webhook updates"""
     # Verify secret token if configured
@@ -43,9 +52,12 @@ async def telegram_webhook(
         raise HTTPException(status_code=401, detail="Invalid secret token")
 
     try:
+        if not telegram_app:
+            raise HTTPException(status_code=503, detail="Telegram bot not initialized")
+        
         data = await request.json()
-        update = Update.de_json(data, application.bot)
-        await application.process_update(update)
+        update = Update.de_json(data, telegram_app.bot)
+        await telegram_app.process_update(update)
         return {"ok": True}
     except Exception as e:
         print(f"Error processing Telegram update: {e}")

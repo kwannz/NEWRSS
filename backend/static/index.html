@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEWRSS - 加密货币新闻聚合</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            padding: 12px;
+            color: #1a202c;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #ffffff;
+            color: #1a202c;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 0;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 4px;
+            font-weight: 700;
+            color: #2563eb;
+            letter-spacing: -0.025em;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+        }
+        
+        .filters {
+            padding: 12px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 13px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        select, input {
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #ffffff;
+            color: #374151;
+        }
+        
+        .news-list {
+            padding: 20px 30px;
+        }
+        
+        .news-grid {
+            padding: 16px 20px;
+        }
+        
+        .news-item {
+            background: #ffffff;
+            border-radius: 0;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 0;
+        }
+        
+        .news-item:hover {
+            background: #f8fafc;
+            border-left: 3px solid #2563eb;
+            transform: none;
+        }
+        
+        .news-item.urgent {
+            border-left: 4px solid #ef4444;
+            background: #fef2f2;
+            position: relative;
+        }
+        
+        .news-item.urgent::after {
+            content: "快讯";
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: #ff6b35;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .news-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+        
+        .news-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        
+        .news-source-meta {
+            color: #007bff;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        
+        .news-time-meta {
+            color: #999999;
+            font-size: 12px;
+        }
+        
+        .news-impact {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .impact-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        
+        .impact-high .impact-dot { background: #ff4757; }
+        .impact-medium .impact-dot { background: #ffa502; }
+        .impact-low .impact-dot { background: #2ed573; }
+        
+        .news-content {
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        
+        .tokens-section {
+            margin: 10px 0;
+            padding: 8px 0;
+        }
+        
+        .tokens-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #666666;
+            margin-bottom: 6px;
+        }
+        
+        .token-list {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .token {
+            background: #f0f8ff;
+            color: #0066cc;
+            border: 1px solid #cce7ff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .lang-toggle {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .news-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
+        }
+        
+        .tag {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 400;
+        }
+        
+        .tag.urgent {
+            background: #ff6b35;
+            color: white;
+        }
+        
+        .tag.category {
+            background: #e8f4f8;
+            color: #0066cc;
+            border: 1px solid #cce7ff;
+        }
+        
+        .tag.importance {
+            background: #fff3e0;
+            color: #ff8f00;
+            border: 1px solid #ffcc80;
+        }
+        
+        .tag.source {
+            background: #f0f8f0;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            background: #f8d7da;
+            border-radius: 8px;
+            margin: 20px;
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .stats {
+            padding: 15px 30px;
+            background: #e3f2fd;
+            color: #1565c0;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .push-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 340px;
+            max-height: 85vh;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e8ecef;
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+            z-index: 1000;
+            overflow: hidden;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .push-panel.active {
+            transform: translateX(0);
+        }
+        
+        .push-header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 12px 16px;
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .push-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+        }
+        
+        .push-list {
+            max-height: calc(80vh - 60px);
+            overflow-y: auto;
+            padding: 0;
+        }
+        
+        .push-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f3f4;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .push-item:hover {
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+        }
+        
+        .push-item.urgent {
+            background: #fff9f6;
+            border-left: 3px solid #ff6b35;
+        }
+        
+        .push-item.urgent::after {
+            content: "快讯";
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: #ff6b35;
+            color: white;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        
+        .push-title {
+            font-weight: 500;
+            color: #333333;
+            font-size: 13px;
+            margin-bottom: 6px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .push-meta {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .push-summary {
+            font-size: 0.8rem;
+            color: #495057;
+            line-height: 1.4;
+        }
+        
+        .push-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+            z-index: 999;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .push-toggle:hover {
+            transform: scale(1.1);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+        
+        .urgent-alert {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #ffffff;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+            z-index: 1002;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .urgent-alert-content {
+            padding: 15px 20px;
+            color: #dc3545;
+            font-weight: 600;
+            max-width: 300px;
+        }
+        
+        .urgent-alert-content div {
+            margin: 8px 0;
+            font-weight: normal;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .urgent-alert-content button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .push-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .push-source {
+            font-size: 0.8rem;
+            color: #007bff;
+            font-weight: 500;
+        }
+        
+        .push-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        
+        .push-tokens {
+            margin-top: 8px;
+        }
+        
+        .token-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+        
+        .urgent-indicator {
+            background: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        
+        .real-time-clock {
+            text-align: right;
+            color: #333;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .clock-time {
+            font-size: 18px;
+            font-weight: 600;
+            color: #007bff;
+            letter-spacing: 1px;
+        }
+        
+        .clock-date {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        /* 金十数据风格的紧凑格式 */
+        .jin10-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        
+        .timestamp {
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-weight: 700;
+            color: #2563eb;
+            background: #eff6ff;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            border: 1px solid #dbeafe;
+        }
+        
+        .news-source-tag {
+            background: #f8f9fa;
+            color: #666;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .urgent-tag {
+            background: #ef4444;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tokens-compact {
+            margin: 6px 0;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        
+        .token-compact {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .news-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 11px;
+        }
+        
+        .importance-level {
+            background: #f1f3f4;
+            color: #5f6368;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .read-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .read-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* 推送面板金十数据风格 */
+        .push-jin10-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+        
+        .push-timestamp {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            color: #007bff;
+            background: #f0f8ff;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 10px;
+            letter-spacing: 0.3px;
+        }
+        
+        .push-urgent-tag {
+            background: #ff6b35;
+            color: white;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+            
+            .container {
+                border-radius: 0;
+                border: none;
+                margin: 0;
+            }
+            
+            .header {
+                padding: 12px 16px;
+                border-radius: 0;
+            }
+            
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .filters {
+                padding: 8px 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .filter-group {
+                justify-content: space-between;
+            }
+            
+            .news-grid {
+                padding: 8px 12px;
+            }
+            
+            .news-item {
+                padding: 10px 12px;
+            }
+            
+            .push-panel {
+                width: calc(100vw - 20px);
+                right: 10px;
+                top: 10px;
+                max-height: 90vh;
+            }
+            
+            .push-toggle {
+                right: 15px;
+                top: 15px;
+                width: 44px;
+                height: 44px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .news-title {
+                font-size: 13px;
+            }
+            
+            .news-content {
+                font-size: 12px;
+            }
+            
+            .timestamp {
+                font-size: 10px;
+                padding: 2px 6px;
+            }
+            
+            .token-compact {
+                font-size: 9px;
+                padding: 1px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>🚀 NEWRSS</h1>
+                    <p>实时加密货币新闻聚合平台</p>
+                </div>
+                <div class="real-time-clock" id="realTimeClock">
+                    <div class="clock-time"></div>
+                    <div class="clock-date"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label>分类:</label>
+                <select id="categoryFilter">
+                    <option value="">全部</option>
+                    <option value="bitcoin">Bitcoin</option>
+                    <option value="ethereum">Ethereum</option>
+                    <option value="defi">DeFi</option>
+                    <option value="nft">NFT</option>
+                    <option value="news">新闻</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>来源:</label>
+                <select id="sourceFilter">
+                    <option value="">全部</option>
+                    <optgroup label="交易所">
+                        <option value="Binance">Binance</option>
+                        <option value="Coinbase Blog">Coinbase</option>
+                        <option value="OKX">OKX</option>
+                        <option value="Bybit">Bybit</option>
+                        <option value="Kraken Blog">Kraken</option>
+                        <option value="KuCoin">KuCoin</option>
+                        <option value="Gate.io Blog">Gate.io</option>
+                    </optgroup>
+                    <optgroup label="新闻媒体">
+                        <option value="Cointelegraph">Cointelegraph</option>
+                        <option value="CoinDesk">CoinDesk</option>
+                        <option value="Decrypt">Decrypt</option>
+                        <option value="The Block">The Block</option>
+                        <option value="NewsBTC">NewsBTC</option>
+                        <option value="CryptoPotato">CryptoPotato</option>
+                        <option value="U.Today">U.Today</option>
+                    </optgroup>
+                    <optgroup label="中文媒体">
+                        <option value="金色财经">金色财经</option>
+                        <option value="巴比特">巴比特</option>
+                        <option value="币世界">币世界</option>
+                        <option value="链节点">链节点</option>
+                    </optgroup>
+                    <optgroup label="专业领域">
+                        <option value="Bitcoin Magazine">Bitcoin Magazine</option>
+                        <option value="Bitcoin.com News">Bitcoin.com</option>
+                        <option value="DeFi Prime">DeFi Prime</option>
+                        <option value="NFT Now">NFT Now</option>
+                        <option value="The Defiant">The Defiant</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>重要性:</label>
+                <select id="importanceFilter">
+                    <option value="1">全部</option>
+                    <option value="2">重要 (2+)</option>
+                    <option value="3">很重要 (3+)</option>
+                    <option value="4">非常重要 (4+)</option>
+                    <option value="5">最重要 (5)</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>
+                    <input type="checkbox" id="urgentFilter"> 仅紧急新闻
+                </label>
+            </div>
+            
+            <button class="refresh-btn" onclick="loadNews()">🔄 刷新</button>
+            <button class="lang-toggle" onclick="toggleLanguage()">🌐 EN/中文</button>
+        </div>
+        
+        <div class="stats" id="stats">
+            加载中...
+        </div>
+        
+        <div class="news-grid" id="newsList">
+            <div class="loading">正在加载新闻...</div>
+        </div>
+    </div>
+    
+    <!-- 推送通知面板 -->
+    <button class="push-toggle" onclick="togglePushPanel()" id="pushToggle">
+        🔔
+    </button>
+    
+    <div class="push-panel" id="pushPanel">
+        <div class="push-header">
+            <span id="pushTitle">🔔 实时推送</span>
+            <button class="push-close" onclick="togglePushPanel()">×</button>
+        </div>
+        <div class="push-list" id="pushList">
+            <div style="padding: 20px; text-align: center; color: #6c757d;">
+                等待新闻推送...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allNews = [];
+        let isEnglish = false;
+        
+        const translations = {
+            header: {
+                zh: '实时加密货币新闻聚合平台',
+                en: 'Real-time Cryptocurrency News Aggregation Platform'
+            },
+            filters: {
+                category: { zh: '分类:', en: 'Category:' },
+                source: { zh: '来源:', en: 'Source:' },
+                importance: { zh: '重要性:', en: 'Importance:' },
+                urgent: { zh: '仅紧急新闻', en: 'Urgent Only' },
+                refresh: { zh: '🔄 刷新', en: '🔄 Refresh' },
+                all: { zh: '全部', en: 'All' },
+                important: { zh: '重要', en: 'Important' },
+                veryImportant: { zh: '很重要', en: 'Very Important' },
+                critical: { zh: '非常重要', en: 'Critical' },
+                highest: { zh: '最重要', en: 'Highest' }
+            },
+            stats: {
+                total: { zh: '总计', en: 'Total' },
+                urgent: { zh: '紧急', en: 'Urgent' },
+                highImportance: { zh: '高重要性', en: 'High Importance' },
+                news: { zh: '条新闻', en: 'news items' }
+            },
+            content: {
+                loading: { zh: '正在加载新闻...', en: 'Loading news...' },
+                noNews: { zh: '没有找到符合条件的新闻', en: 'No news found matching criteria' },
+                readMore: { zh: '📖 阅读原文 →', en: '📖 Read Full Article →' },
+                urgentTag: { zh: '🚨 紧急', en: '🚨 Urgent' },
+                importanceTag: { zh: '重要性', en: 'Importance' },
+                loadError: { zh: '加载失败', en: 'Loading failed' }
+            },
+            push: {
+                title: { zh: '🔔 实时推送', en: '🔔 Live Push' },
+                waiting: { zh: '等待新闻推送...', en: 'Waiting for news...' },
+                urgent: { zh: '紧急', en: 'Urgent' },
+                urgentNews: { zh: '🚨 紧急新闻', en: '🚨 Urgent News' },
+                view: { zh: '查看', en: 'View' }
+            }
+        };
+        
+        function t(path) {
+            const keys = path.split('.');
+            let obj = translations;
+            for (let key of keys) {
+                obj = obj[key];
+            }
+            return obj[isEnglish ? 'en' : 'zh'];
+        }
+        
+        function extractTokens(content, title) {
+            const text = `${title} ${content}`.toUpperCase();
+            const tokenPattern = /\b(BTC|ETH|USDT|USDC|BNB|XRP|SOL|ADA|DOGE|MATIC|DOT|AVAX|LINK|LTC|BCH|FIL|ETC|XLM|VET|TRX|ALGO|ATOM|XTZ|EOS|IOTA|NEO|WAVES|ZEC|DASH|XMR|THETA|COMP|UNI|AAVE|MKR|YFI|SNX|CRV|BAL|SUSHI|1INCH|RUNE|CAKE|ALPHA|NEAR|FTM|ONE|HBAR|ENJ|MANA|SAND|CHZ|BAT|ZRX|KNC|LRC|REN|STORJ|GRT|BAND|OCEAN|REEF|DODO|ROOK|BADGER|BOND|TORN|CVX|FXS|TRIBE|OHM|SPELL|ICE|TIME|MEMO|KLIMA|BOBA|OP|ARB|MATIC|PENGU|PUMP|HYPE|SUI)\b/g;
+            const matches = text.match(tokenPattern) || [];
+            return [...new Set(matches)];
+        }
+        
+        function translateContent(text) {
+            if (!isEnglish) return text;
+            
+            const patterns = {
+                '小时前': 'hours ago',
+                '天前': 'days ago',
+                '刚刚': 'Just now',
+                '重要性': 'Importance',
+                '紧急': 'Urgent',
+                '新闻': 'News'
+            };
+            
+            let translated = text;
+            for (let [zh, en] of Object.entries(patterns)) {
+                translated = translated.replace(new RegExp(zh, 'g'), en);
+            }
+            return translated;
+        }
+        
+        function toggleLanguage() {
+            isEnglish = !isEnglish;
+            updateUI();
+            filterAndDisplayNews();
+        }
+        
+        function updateUI() {
+            document.querySelector('.header p').textContent = t('header');
+            document.querySelector('label[for="categoryFilter"]').textContent = t('filters.category');
+            document.querySelector('label[for="sourceFilter"]').textContent = t('filters.source');
+            document.querySelector('label[for="importanceFilter"]').textContent = t('filters.importance');
+            document.querySelector('label[for="urgentFilter"]').innerHTML = 
+                `<input type="checkbox" id="urgentFilter"> ${t('filters.urgent')}`;
+            document.querySelector('.refresh-btn').innerHTML = t('filters.refresh');
+            
+            // Update push panel title
+            const pushTitle = document.getElementById('pushTitle');
+            if (pushTitle) {
+                pushTitle.textContent = t('push.title');
+            }
+            
+            // Update select options
+            const importanceSelect = document.getElementById('importanceFilter');
+            const options = [
+                t('filters.all'),
+                t('filters.important') + ' (2+)',
+                t('filters.veryImportant') + ' (3+)', 
+                t('filters.critical') + ' (4+)',
+                t('filters.highest') + ' (5)'
+            ];
+            for (let i = 0; i < importanceSelect.options.length; i++) {
+                importanceSelect.options[i].text = options[i];
+            }
+        }
+        
+        async function loadNews() {
+            try {
+                console.log('开始加载新闻...');
+                document.getElementById('newsList').innerHTML = `<div class="loading">${t('content.loading')}</div>`;
+                
+                const response = await fetch('/news/?limit=100');
+                console.log('API响应状态:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                allNews = await response.json();
+                console.log('获取到新闻数量:', allNews.length);
+                console.log('新闻示例:', allNews.slice(0, 2));
+                updateStats();
+                filterAndDisplayNews();
+                console.log('新闻加载完成');
+                
+            } catch (error) {
+                console.error('Error loading news:', error);
+                document.getElementById('newsList').innerHTML = 
+                    `<div class="error">${t('content.loadError')}: ${error.message}</div>`;
+            }
+        }
+        
+        function updateStats() {
+            const urgentCount = allNews.filter(item => item.isUrgent).length;
+            const highImportance = allNews.filter(item => item.importanceScore >= 4).length;
+            
+            if (isEnglish) {
+                document.getElementById('stats').innerHTML = 
+                    `${t('stats.total')} ${allNews.length} ${t('stats.news')} | ${t('stats.urgent')}: ${urgentCount} | ${t('stats.highImportance')}: ${highImportance}`;
+            } else {
+                document.getElementById('stats').innerHTML = 
+                    `${t('stats.total')} ${allNews.length} ${t('stats.news')} | ${t('stats.urgent')}: ${urgentCount} | ${t('stats.highImportance')}: ${highImportance}`;
+            }
+        }
+        
+        function filterAndDisplayNews() {
+            const category = document.getElementById('categoryFilter').value;
+            const source = document.getElementById('sourceFilter').value;
+            const importance = parseInt(document.getElementById('importanceFilter').value);
+            const urgentOnly = document.getElementById('urgentFilter').checked;
+            
+            let filtered = allNews.filter(item => {
+                if (category && item.category !== category) return false;
+                if (source && item.source !== source) return false;
+                if (item.importanceScore < importance) return false;
+                if (urgentOnly && !item.isUrgent) return false;
+                return true;
+            });
+            
+            displayNews(filtered);
+        }
+        
+        function displayNews(newsItems) {
+            const container = document.getElementById('newsList');
+            
+            if (newsItems.length === 0) {
+                container.innerHTML = `<div class="loading">${t('content.noNews')}</div>`;
+                return;
+            }
+            
+            container.innerHTML = newsItems.map(item => {
+                const tokens = item.keyTokens ? item.keyTokens : extractTokens(item.content, item.title);
+                const impactLevel = item.marketImpact >= 4 ? 'high' : item.marketImpact >= 3 ? 'medium' : 'low';
+                
+                // 金十数据格式：时间戳
+                const publishTime = new Date(item.publishedAt);
+                const timeStamp = publishTime.toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                
+                // 双语内容
+                const title = isEnglish ? (item.titleEn || item.title) : item.title;
+                const summary = isEnglish ? (item.summaryEn || item.summary) : item.summary;
+                const content = isEnglish ? (item.contentEn || item.content) : item.content;
+                
+                return `
+                <div class="news-item ${item.isUrgent ? 'urgent' : ''}" data-news-id="${item.id}">
+                    <div class="jin10-header">
+                        <span class="timestamp">${timeStamp}</span>
+                        <span class="news-source-tag">${item.source}</span>
+                        ${item.isUrgent ? `<span class="urgent-tag">${isEnglish ? 'URGENT' : '快讯'}</span>` : ''}
+                        <span class="news-impact impact-${impactLevel}">
+                            <span class="impact-dot"></span>
+                        </span>
+                    </div>
+                    
+                    <div class="news-title">${title}</div>
+                    
+                    <div class="news-content">
+                        ${summary || stripHtml(content.substring(0, 180)) + '...'}
+                    </div>
+                    
+                    ${tokens.length > 0 ? `
+                    <div class="tokens-compact">
+                        ${tokens.slice(0, 4).map(token => `<span class="token-compact">${token}</span>`).join('')}
+                    </div>
+                    ` : ''}
+                    
+                    <div class="news-footer">
+                        <span class="importance-level">L${item.importanceScore}</span>
+                        <a href="${item.url}" target="_blank" class="read-link">
+                            ${isEnglish ? 'Details ›' : '详情 ›'}
+                        </a>
+                    </div>
+                </div>
+            `;}).join('');
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMinutes = Math.floor((now - date) / (1000 * 60));
+            
+            // 金十数据风格：显示精确时间
+            if (diffMinutes < 1) return isEnglish ? 'Just now' : '刚刚';
+            if (diffMinutes < 60) return `${diffMinutes}${isEnglish ? 'min' : '分钟'}`;
+            if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}${isEnglish ? 'h' : '小时'}`;
+            
+            // 超过一天显示具体时间
+            const timeStr = date.toLocaleTimeString('zh-CN', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateStr = date.toLocaleDateString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit'
+            });
+            
+            return `${dateStr} ${timeStr}`;
+        }
+        
+        function stripHtml(html) {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            return temp.textContent || temp.innerText || '';
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('categoryFilter').addEventListener('change', filterAndDisplayNews);
+            document.getElementById('sourceFilter').addEventListener('change', filterAndDisplayNews);
+            document.getElementById('importanceFilter').addEventListener('change', filterAndDisplayNews);
+            document.getElementById('urgentFilter').addEventListener('change', filterAndDisplayNews);
+        });
+        
+        // Auto refresh every 5 minutes
+        setInterval(loadNews, 5 * 60 * 1000);
+        
+        // Push notification functionality
+        let pushPanelOpen = false;
+        let pushNotifications = [];
+        let unreadCount = 0;
+        let socket;
+
+        function togglePushPanel() {
+            const panel = document.querySelector('.push-panel');
+            const badge = document.querySelector('.notification-badge');
+            
+            if (pushPanelOpen) {
+                panel.style.transform = 'translateX(100%)';
+                pushPanelOpen = false;
+            } else {
+                panel.style.transform = 'translateX(0)';
+                pushPanelOpen = true;
+                unreadCount = 0;
+                updateNotificationBadge();
+            }
+        }
+
+        function closePushPanel() {
+            const panel = document.querySelector('.push-panel');
+            panel.style.transform = 'translateX(100%)';
+            pushPanelOpen = false;
+        }
+
+        function addPushNotification(newsItem) {
+            const pushList = document.querySelector('.push-list');
+            
+            // Clear placeholder text if it exists
+            if (pushList.innerHTML.includes('等待新闻推送...')) {
+                pushList.innerHTML = '';
+            }
+            
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `push-item ${newsItem.isUrgent ? 'urgent' : ''}`;
+            notificationElement.setAttribute('data-news-id', newsItem.id);
+            
+            const tokens = newsItem.keyTokens && Array.isArray(newsItem.keyTokens) 
+                ? newsItem.keyTokens.slice(0, 3).map(token => `<span class="token-badge">${token}</span>`).join('')
+                : '';
+            
+            const publishTime = new Date(newsItem.publishedAt);
+            const timeStamp = publishTime.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            
+            // 双语推送内容
+            const pushTitle = isEnglish ? (newsItem.titleEn || newsItem.title) : newsItem.title;
+            
+            notificationElement.innerHTML = `
+                <div class="push-jin10-header">
+                    <span class="push-timestamp">${timeStamp}</span>
+                    <span class="push-source">${newsItem.source}</span>
+                    ${newsItem.isUrgent ? `<span class="push-urgent-tag">${isEnglish ? 'URGENT' : '快讯'}</span>` : ''}
+                </div>
+                <div class="push-title">${pushTitle}</div>
+                ${tokens ? `<div class="push-tokens">${tokens}</div>` : ''}
+            `;
+            
+            notificationElement.addEventListener('click', () => {
+                const newsCard = document.querySelector(`[data-news-id="${newsItem.id}"]`);
+                if (newsCard) {
+                    newsCard.scrollIntoView({ behavior: 'smooth' });
+                    newsCard.style.border = '2px solid #007bff';
+                    setTimeout(() => {
+                        newsCard.style.border = '';
+                    }, 2000);
+                }
+                closePushPanel();
+            });
+            
+            pushList.insertBefore(notificationElement, pushList.firstChild);
+            
+            if (!pushPanelOpen) {
+                unreadCount++;
+                updateNotificationBadge();
+            }
+            
+            // Keep only 50 recent notifications
+            if (pushList.children.length > 50) {
+                pushList.removeChild(pushList.lastChild);
+            }
+        }
+
+        function updateNotificationBadge() {
+            let badge = document.querySelector('.notification-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'notification-badge';
+                document.querySelector('.push-toggle').appendChild(badge);
+            }
+            
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMinutes = Math.floor((now - date) / (1000 * 60));
+            
+            if (diffMinutes < 1) return isEnglish ? 'Just now' : '刚刚';
+            if (diffMinutes < 60) return `${diffMinutes}${isEnglish ? 'm ago' : '分钟前'}`;
+            if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}${isEnglish ? 'h ago' : '小时前'}`;
+            return `${Math.floor(diffMinutes / 1440)}${isEnglish ? 'd ago' : '天前'}`;
+        }
+
+        function initializeWebSocket() {
+            if (typeof io === 'undefined') {
+                console.warn('Socket.IO not loaded, push notifications disabled');
+                return;
+            }
+            
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('WebSocket connected for push notifications');
+            });
+            
+            socket.on('new_news', (newsItem) => {
+                console.log('New news received:', newsItem);
+                addPushNotification(newsItem);
+                
+                // Also add to main news grid if not already present
+                const existingCard = document.querySelector(`[data-news-id="${newsItem.id}"]`);
+                if (!existingCard) {
+                    addNewsCardToGrid(newsItem);
+                }
+            });
+            
+            socket.on('urgent_news', (newsItem) => {
+                console.log('Urgent news received:', newsItem);
+                addPushNotification(newsItem);
+                
+                // Show urgent alert popup
+                if (!pushPanelOpen) {
+                    showUrgentAlert(newsItem);
+                }
+                
+                // Add to main grid if not present
+                const existingCard = document.querySelector(`[data-news-id="${newsItem.id}"]`);
+                if (!existingCard) {
+                    addNewsCardToGrid(newsItem);
+                }
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('WebSocket disconnected');
+            });
+        }
+
+        function showUrgentAlert(newsItem) {
+            const urgentAlert = document.createElement('div');
+            urgentAlert.className = 'urgent-alert';
+            
+            const alertTitle = isEnglish ? (newsItem.titleEn || newsItem.title) : newsItem.title;
+            
+            urgentAlert.innerHTML = `
+                <div class="urgent-alert-content">
+                    <strong>${t('push.urgentNews')}</strong>
+                    <div>${alertTitle}</div>
+                    <button onclick="this.parentElement.parentElement.remove(); togglePushPanel();">
+                        ${t('push.view')}
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(urgentAlert);
+            
+            setTimeout(() => {
+                if (urgentAlert.parentElement) {
+                    urgentAlert.remove();
+                }
+            }, 10000);
+        }
+
+        function addNewsCardToGrid(newsItem) {
+            const newsGrid = document.querySelector('.news-grid');
+            if (!newsGrid) return;
+            
+            const cardElement = createNewsCard(newsItem);
+            newsGrid.insertBefore(cardElement, newsGrid.firstChild);
+        }
+
+        function createNewsCard(item) {
+            const cardElement = document.createElement('div');
+            cardElement.className = `news-item ${item.isUrgent ? 'urgent' : ''}`;
+            cardElement.setAttribute('data-news-id', item.id);
+            
+            const tokens = item.keyTokens && Array.isArray(item.keyTokens) 
+                ? item.keyTokens 
+                : (item.keyTokens ? JSON.parse(item.keyTokens) : extractTokens(item.content, item.title));
+            
+            const impactLevel = item.marketImpact >= 4 ? 'high' : item.marketImpact >= 3 ? 'medium' : 'low';
+            
+            const tokensHtml = tokens.length > 0 ? `
+                <div class="tokens-compact">
+                    ${tokens.slice(0, 4).map(token => `<span class="token-compact">${token}</span>`).join('')}
+                </div>
+            ` : '';
+            
+            const publishTime = new Date(item.publishedAt);
+            const timeStamp = publishTime.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            
+            cardElement.innerHTML = `
+                <div class="jin10-header">
+                    <span class="timestamp">${timeStamp}</span>
+                    <span class="news-source-tag">${item.source}</span>
+                    ${item.isUrgent ? '<span class="urgent-tag">快讯</span>' : ''}
+                    <span class="news-impact impact-${impactLevel}">
+                        <span class="impact-dot"></span>
+                    </span>
+                </div>
+                
+                <div class="news-title">${item.title}</div>
+                
+                <div class="news-content">
+                    ${item.summary || stripHtml(item.content.substring(0, 180)) + '...'}
+                </div>
+                
+                ${tokensHtml}
+                
+                <div class="news-footer">
+                    <span class="importance-level">L${item.importanceScore}</span>
+                    <a href="${item.url}" target="_blank" class="read-link">
+                        ${isEnglish ? 'Details ›' : '详情 ›'}
+                    </a>
+                </div>
+            `;
+            
+            return cardElement;
+        }
+
+        // Real-time clock function (Jin10 style)
+        function updateRealTimeClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false
+            });
+            const dateStr = now.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            
+            const clockTime = document.querySelector('.clock-time');
+            const clockDate = document.querySelector('.clock-date');
+            
+            if (clockTime) clockTime.textContent = timeStr;
+            if (clockDate) clockDate.textContent = dateStr;
+        }
+
+        // Initialize WebSocket when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWebSocket();
+            updateRealTimeClock();
+            // Update clock every second (Jin10 style)
+            setInterval(updateRealTimeClock, 1000);
+            // Load news after DOM is ready
+            loadNews();
+        });
+    </script>
+</body>
+</html>

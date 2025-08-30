@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel
+from typing import Optional
 from app.core.database import get_db
 from app.core.auth import verify_password, get_password_hash, create_access_token, verify_token
 from app.models.user import User
@@ -20,7 +21,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     is_active: bool
-    telegram_id: str | None = None
+    telegram_id: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str

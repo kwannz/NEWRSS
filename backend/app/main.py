@@ -1,13 +1,27 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import socketio
 from socketio import ASGIApp
+from contextlib import asynccontextmanager
 from app.core.settings import settings
-from app.api.auth import router as auth_router
+from app.core.database import engine, Base
 from app.api.news import router as news_router
+from app.api.sources import router as sources_router
 from app.services.telegram_webhook import router as telegram_router
 
-app = FastAPI(title="NEWRSS API", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    print("Database tables created")
+    yield
+    # Shutdown
+    await engine.dispose()
+    print("Database connection closed")
+
+app = FastAPI(title="NEWRSS API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,9 +31,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router)
 app.include_router(news_router)
+app.include_router(sources_router)
 app.include_router(telegram_router)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 sio = socketio.AsyncServer(
     async_mode='asgi',
@@ -28,7 +44,8 @@ sio = socketio.AsyncServer(
 
 @app.get("/")
 async def root():
-    return {"message": "NEWRSS API is running"}
+    from fastapi.responses import FileResponse
+    return FileResponse("static/index.html")
 
 @app.get("/health")
 async def health():

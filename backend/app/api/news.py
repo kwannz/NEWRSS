@@ -3,18 +3,37 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from typing import List, Optional
 from pydantic import BaseModel
+import json
 from app.core.database import get_db
 from app.models.news import NewsItem
-from app.api.auth import get_current_user
-from app.models.user import User
+from app.services.translator import translator
+
+def safe_json_loads(data):
+    """安全解析JSON数据"""
+    if not data:
+        return None
+    try:
+        if isinstance(data, str):
+            if data.startswith('[') and data.endswith(']'):
+                return json.loads(data)
+            else:
+                # 处理字符串列表格式 "['BTC', 'ETH']"
+                import ast
+                return ast.literal_eval(data)
+        return data
+    except:
+        return None
 
 router = APIRouter(prefix="/news", tags=["news"])
 
 class NewsItemResponse(BaseModel):
     id: int
     title: str
+    titleEn: Optional[str] = None
     content: str
+    contentEn: Optional[str] = None
     summary: Optional[str] = None
+    summaryEn: Optional[str] = None
     url: str
     source: str
     category: Optional[str] = None
@@ -61,8 +80,11 @@ async def get_news_list(
         NewsItemResponse(
             id=item.id,
             title=item.title,
+            titleEn=translator.translate_to_english(item.title),
             content=item.content,
+            contentEn=translator.translate_to_english(item.content),
             summary=item.summary,
+            summaryEn=translator.translate_to_english(item.summary) if item.summary else None,
             url=item.url,
             source=item.source,
             category=item.category,
@@ -71,8 +93,8 @@ async def get_news_list(
             isUrgent=item.is_urgent,
             marketImpact=item.market_impact,
             sentimentScore=item.sentiment_score,
-            keyTokens=eval(item.key_tokens) if item.key_tokens else None,
-            keyPrices=eval(item.key_prices) if item.key_prices else None,
+            keyTokens=safe_json_loads(item.key_tokens),
+            keyPrices=safe_json_loads(item.key_prices),
             createdAt=item.created_at.isoformat()
         )
         for item in news_items
@@ -92,8 +114,11 @@ async def get_news_item(
     return NewsItemResponse(
         id=item.id,
         title=item.title,
+        titleEn=translator.translate_to_english(item.title),
         content=item.content,
+        contentEn=translator.translate_to_english(item.content),
         summary=item.summary,
+        summaryEn=translator.translate_to_english(item.summary) if item.summary else None,
         url=item.url,
         source=item.source,
         category=item.category,
@@ -102,7 +127,7 @@ async def get_news_item(
         isUrgent=item.is_urgent,
         marketImpact=item.market_impact,
         sentimentScore=item.sentiment_score,
-        keyTokens=eval(item.key_tokens) if item.key_tokens else None,
-        keyPrices=eval(item.key_prices) if item.key_prices else None,
+        keyTokens=safe_json_loads(item.key_tokens),
+        keyPrices=safe_json_loads(item.key_prices),
         createdAt=item.created_at.isoformat()
     )
