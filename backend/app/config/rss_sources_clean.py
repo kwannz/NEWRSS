@@ -55,7 +55,7 @@ EXCHANGE_RSS_SOURCES = [
     }
 ]
 
-# ✅ 验证有效的新闻媒体RSS源 (10个)
+# ✅ 验证有效的新闻媒体RSS源 (16个)
 CRYPTO_NEWS_SOURCES = [
     {
         "url": "https://cointelegraph.com/rss",
@@ -99,6 +99,78 @@ CRYPTO_NEWS_SOURCES = [
         "category": "bitcoin",
         "source_type": "rss",
         "priority": 4,
+        "language": "en",
+        "region": "global"
+    },
+    {
+        "url": "https://cryptobriefing.com/feed/",
+        "name": "Crypto Briefing",
+        "category": "news",
+        "source_type": "rss",
+        "priority": 4,
+        "language": "en",
+        "region": "global"
+    },
+    {
+        "url": "https://beincrypto.com/feed/",
+        "name": "BeInCrypto",
+        "category": "news",
+        "source_type": "rss",
+        "priority": 4,
+        "language": "en",
+        "region": "global"
+    },
+    {
+        "url": "https://cryptoslate.com/feed/",
+        "name": "CryptoSlate",
+        "category": "news",
+        "source_type": "rss",
+        "priority": 4,
+        "language": "en",
+        "region": "global"
+    },
+    {
+        "url": "https://ambcrypto.com/feed/",
+        "name": "AMBCrypto",
+        "category": "news",
+        "source_type": "rss",
+        "priority": 3,
+        "language": "en",
+        "region": "global"
+    },
+    {
+        "url": "https://blockonomi.com/feed/",
+        "name": "Blockonomi",
+        "category": "news",
+        "source_type": "rss",
+        "priority": 3,
+        "language": "en",
+        "region": "global"
+    },
+    {
+        "url": "https://coinjournal.net/feed/",
+        "name": "CoinJournal",
+        "category": "news",
+        "source_type": "rss",
+        "priority": 3,
+        "language": "en",
+        "region": "global"
+    },
+    {
+        "url": "https://cryptodaily.co.uk/feed",
+        "name": "Crypto Daily",
+        "category": "news",
+        "source_type": "rss",
+        "priority": 3,
+        "language": "en",
+        "region": "global"
+    },
+    {
+        "url": "https://dailycoin.com/feed/",
+        "name": "DailyCoin",
+        "category": "news",
+        "source_type": "rss",
+        "priority": 3,
         "language": "en",
         "region": "global"
     },
