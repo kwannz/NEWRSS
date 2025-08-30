@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from app.core.settings import settings
 from app.core.database import engine, Base
 from app.api.news import router as news_router
+from app.api.auth import router as auth_router
 from app.api.sources import router as sources_router
 from app.services.telegram_webhook import router as telegram_router
 
@@ -34,6 +35,7 @@ app.add_middleware(
 app.include_router(news_router)
 app.include_router(sources_router)
 app.include_router(telegram_router)
+app.include_router(auth_router)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
