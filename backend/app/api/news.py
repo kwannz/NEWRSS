@@ -7,7 +7,7 @@ import json
 from app.core.database import get_db
 from app.models.news import NewsItem
 from app.services.translator import translator
-from app.main import broadcast_news, broadcast_urgent
+from app.core.broadcast_utils import broadcast_news, broadcast_urgent
 
 def safe_json_loads(data):
     """安全解析JSON数据"""

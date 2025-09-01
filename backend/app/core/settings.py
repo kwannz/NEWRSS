@@ -17,6 +17,21 @@ class Settings(BaseSettings):
     # Logging configuration
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "json"  # json or console
+    
+    # Exchange API configuration
+    BINANCE_API_KEY: Optional[str] = None
+    COINBASE_API_KEY: Optional[str] = None
+    OKX_API_KEY: Optional[str] = None
+    COINGECKO_API_KEY: Optional[str] = None
+    
+    # Rate limiting settings
+    EXCHANGE_API_RATE_LIMIT: int = 60  # requests per minute
+    PRICE_UPDATE_INTERVAL: int = 30    # seconds between price updates
+    
+    # Market impact analysis settings
+    PRICE_ALERT_THRESHOLD: float = 5.0  # Percent change threshold for alerts
+    VOLATILITY_THRESHOLD: float = 10.0  # High volatility threshold
+    MARKET_IMPACT_COOLDOWN: int = 300   # 5 minutes between impact analyses
 
     class Config:
         env_file = ".env"

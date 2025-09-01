@@ -10,7 +10,11 @@ from app.core.logging import setup_logging, main_logger, database_logger, websoc
 from app.api.news import router as news_router
 from app.api.auth import router as auth_router
 from app.api.sources import router as sources_router
+from app.api.broadcast import router as broadcast_router
+from app.api.exchange import router as exchange_router
 from app.services.telegram_webhook import router as telegram_router
+from app.services.broadcast_service import BroadcastService
+from app.core.broadcast_utils import get_socketio_server
 
 # Initialize logging before any other operations
 setup_logging()
@@ -42,15 +46,18 @@ app.add_middleware(
 
 app.include_router(news_router)
 app.include_router(sources_router)
+app.include_router(broadcast_router)
+app.include_router(exchange_router, prefix="/api/v1/exchange", tags=["exchange"])
 app.include_router(telegram_router)
 app.include_router(auth_router)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-sio = socketio.AsyncServer(
-    async_mode='asgi',
-    cors_allowed_origins=settings.CORS_ORIGINS,
-)
+# Get the socket.io server from broadcast utils
+sio = get_socketio_server()
+
+# Initialize broadcast service and configure WebSocket integration
+broadcast_service = BroadcastService()
 
 @app.get("/")
 async def root():
@@ -69,10 +76,10 @@ async def connect(sid, environ):
 async def disconnect(sid):
     websocket_logger.info("WebSocket connection closed", socket_id=sid)
 
-async def broadcast_news(news_item: dict):
-    await sio.emit('new_news', news_item)
+# Import broadcast functions from utilities
+from app.core.broadcast_utils import broadcast_news, broadcast_urgent
 
-async def broadcast_urgent(news_item: dict):
-    await sio.emit('urgent_news', news_item)
+# Configure broadcast service with WebSocket functions
+broadcast_service.set_websocket_broadcaster(broadcast_news, broadcast_urgent)
 
 asgi_app = ASGIApp(sio, other_asgi_app=app)
