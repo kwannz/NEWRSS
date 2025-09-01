@@ -7,9 +7,11 @@ from app.models.user import User
 from app.services.telegram_bot import TelegramBot
 from app.core.settings import settings
 from sqlalchemy import select, and_
+from app.core.logging import get_task_logger
 
 async def _aggregate_daily_news_async():
     """异步聚合每日新闻摘要"""
+    logger = get_task_logger("news_aggregator")
     async for db in get_db():
         try:
             yesterday = datetime.now() - timedelta(days=1)
@@ -25,7 +27,7 @@ async def _aggregate_daily_news_async():
             important_news = result.scalars().all()
             
             if not important_news:
-                print("No important news found for daily digest")
+                logger.info("No important news found for daily digest")
                 return
             
             if settings.TELEGRAM_BOT_TOKEN:
@@ -53,17 +55,32 @@ async def _aggregate_daily_news_async():
                     ]
                     
                     await telegram_bot.send_daily_digest(user_telegram_ids, news_data)
-                    print(f"Sent daily digest to {len(user_telegram_ids)} users")
+                    logger.info(
+                        "Daily digest sent successfully",
+                        recipient_count=len(user_telegram_ids),
+                        news_items_count=len(news_data)
+                    )
                 
         except Exception as e:
-            print(f"Error in daily aggregation: {e}")
+            logger.error(
+                "Daily news aggregation failed",
+                error=str(e),
+                exc_info=True
+            )
         finally:
             break
 
 @current_app.task
 def aggregate_daily_news():
     """聚合每日新闻摘要"""
+    logger = get_task_logger("news_aggregator")
     try:
+        logger.info("Starting daily news aggregation")
         asyncio.run(_aggregate_daily_news_async())
+        logger.info("Daily news aggregation completed successfully")
     except Exception as e:
-        print(f"Error in aggregate_daily_news: {e}")
+        logger.error(
+            "Daily news aggregation task failed",
+            error=str(e),
+            exc_info=True
+        )

@@ -4,10 +4,13 @@ from app.core.database import engine, Base
 from app.models.news import NewsItem
 from app.services.ai_analyzer import AINewsAnalyzer
 from sqlalchemy import select, update
+from app.core.logging import get_logger
+
+logger = get_logger("generate_summaries")
 
 async def generate_summaries():
     """为所有新闻生成摘要"""
-    print("正在为新闻生成摘要...")
+    logger.info("Starting news summary generation")
     
     SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
     
@@ -20,10 +23,10 @@ async def generate_summaries():
         news_rows = result.fetchall()
         
         if not news_rows:
-            print("所有新闻都已有摘要")
+            logger.info("All news items already have summaries")
             return
         
-        print(f"找到 {len(news_rows)} 条需要生成摘要的新闻")
+        logger.info("News items found for summary generation", total_items=len(news_rows))
         
         # 批量处理
         for i, row in enumerate(news_rows):
@@ -60,14 +63,19 @@ async def generate_summaries():
                 
                 if (i + 1) % 10 == 0:
                     await session.commit()
-                    print(f"已处理 {i + 1}/{len(news_rows)} 条新闻")
+                    logger.info("News summary processed", progress=f"{i + 1}/{len(news_rows)}", news_id=news_id)
             
             except Exception as e:
-                print(f"处理新闻 {news_id if 'news_id' in locals() else 'unknown'} 时出错: {e}")
+                logger.error(
+                    "Summary generation failed for news item",
+                    news_id=news_id if 'news_id' in locals() else 'unknown',
+                    error=str(e),
+                    exc_info=True
+                )
                 continue
         
         await session.commit()
-        print(f"完成! 共处理 {len(news_rows)} 条新闻")
+        logger.info("Summary generation completed", total_processed=len(news_rows))
 
 def extract_tokens_from_text(text):
     """从文本中提取代币符号"""

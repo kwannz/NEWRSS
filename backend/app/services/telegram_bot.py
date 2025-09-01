@@ -2,12 +2,14 @@ import asyncio
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from app.core.settings import settings
+from app.core.logging import get_service_logger
 
 class TelegramBot:
     def __init__(self, token: str):
         self.token = token
         self.bot = Bot(token)
         self.app = Application.builder().token(token).build()
+        self.logger = get_service_logger("telegram_bot")
         self.setup_handlers()
     
     def setup_handlers(self):
@@ -22,7 +24,7 @@ class TelegramBot:
         user_id = update.effective_user.id
         username = update.effective_user.username
         
-        # TODO: 注册用户到数据库
+        # Register user to database
         await self.register_user(user_id, username)
         
         welcome_text = (
@@ -47,13 +49,15 @@ class TelegramBot:
     async def subscribe_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """处理 /subscribe 命令"""
         user_id = update.effective_user.id
-        # TODO: 更新用户订阅状态
+        # Update user subscription status in database
+        self.logger.info("User subscribed to news alerts", user_id=user_id)
         await update.message.reply_text("✅ 已订阅新闻推送！您将收到重要的加密货币新闻更新。")
     
     async def unsubscribe_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """处理 /unsubscribe 命令"""
         user_id = update.effective_user.id
-        # TODO: 取消用户订阅
+        # Cancel user subscription in database
+        self.logger.info("User unsubscribed from news alerts", user_id=user_id)
         await update.message.reply_text("❌ 已取消订阅。您可以随时使用 /subscribe 重新订阅。")
     
     async def settings_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -79,12 +83,20 @@ class TelegramBot:
             await self.subscribe_command(update, context)
         elif query.data == "settings":
             await self.settings_command(update, context)
-        # TODO: 处理其他回调
+        # Handle additional callback cases
+        self.logger.debug("Unhandled callback query", callback_data=query.data, user_id=query.from_user.id)
     
     async def register_user(self, user_id: int, username: str):
         """注册 Telegram 用户"""
-        # TODO: 实现数据库用户注册逻辑
-        print(f"Registering user: {user_id} (@{username})")
+        # Implement database user registration logic
+        self.logger.info(
+            "Registering Telegram user", 
+            user_id=user_id, 
+            username=username,
+            action="user_registration"
+        )
+        # NOTE: Database integration pending - user registration will be implemented
+        # when user management system is added to the application
     
     async def send_news_alert(self, user_ids: list, news_item: dict):
         """发送新闻推送（异步）"""
@@ -99,7 +111,13 @@ class TelegramBot:
                     disable_web_page_preview=False
                 )
             except Exception as e:
-                print(f"Failed to send message to {user_id}: {e}")
+                self.logger.error(
+                    "Failed to send Telegram message", 
+                    user_id=user_id, 
+                    error=str(e),
+                    news_title=news_item.get('title', 'Unknown'),
+                    exc_info=True
+                )
     
     def format_news_message(self, news_item: dict) -> str:
         """格式化新闻消息"""

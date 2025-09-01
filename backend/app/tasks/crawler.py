@@ -3,9 +3,11 @@ from celery import current_app
 from typing import Dict, List
 from app.services.rss_fetcher import RSSFetcher
 from app.config.rss_sources_clean import get_all_sources, EXCHANGE_URGENT_KEYWORDS, IMPORTANCE_WEIGHTS
+from app.core.logging import get_task_logger
 
 async def _crawl_all_feeds_async():
     """异步抓取所有RSS订阅源"""
+    logger = get_task_logger("crawler")
     sources = get_all_sources()
     
     async with RSSFetcher() as fetcher:
@@ -18,7 +20,12 @@ async def _crawl_all_feeds_async():
                 item['importance_score'] = calculate_importance(item)
                 processed_items.append(item)
         
-        print(f"Processed {len(processed_items)} new items")
+        logger.info(
+            "RSS feed crawling completed",
+            processed_count=len(processed_items),
+            total_sources=len(sources),
+            urgent_items=len([item for item in processed_items if item.get('is_urgent')])
+        )
         return processed_items
 
 def is_urgent_news(item: Dict) -> bool:
@@ -109,7 +116,14 @@ def calculate_importance(item: Dict) -> int:
 @current_app.task
 def crawl_all_feeds():
     """定时抓取所有RSS订阅源"""
+    logger = get_task_logger("crawler")
     try:
+        logger.info("Starting comprehensive RSS feed crawling")
         asyncio.run(_crawl_all_feeds_async())
+        logger.info("RSS feed crawling task completed successfully")
     except Exception as e:
-        print(f"Error in crawl_all_feeds: {e}")
+        logger.error(
+            "RSS feed crawling task failed",
+            error=str(e),
+            exc_info=True
+        )

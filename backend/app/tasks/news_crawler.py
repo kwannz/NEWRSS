@@ -3,6 +3,7 @@ from celery import Celery
 from typing import Dict
 from app.services.rss_fetcher import RSSFetcher
 from app.core.settings import settings
+from app.core.logging import get_task_logger
 
 celery_app = Celery(
     'newrss',
@@ -65,7 +66,13 @@ async def _crawl_news_sources_async():
                 item['importance_score'] = calculate_importance(item)
                 processed_items.append(item)
         
-        print(f"Processed {len(processed_items)} new items")
+        logger = get_task_logger("news_crawler")
+        logger.info(
+            "News crawling completed",
+            processed_count=len(processed_items),
+            sources_count=len(sources),
+            urgent_count=len([item for item in processed_items if item.get('is_urgent')])
+        )
         return processed_items
 
 def is_urgent_news(item: Dict) -> bool:
@@ -110,21 +117,42 @@ def calculate_importance(item: Dict) -> int:
 @celery_app.task
 def crawl_news_sources():
     """定时抓取新闻源（Celery 同步任务包装异步逻辑）"""
+    logger = get_task_logger("news_crawler")
     try:
+        logger.info("Starting scheduled news crawling task")
         asyncio.run(_crawl_news_sources_async())
+        logger.info("News crawling task completed successfully")
     except Exception as e:
-        print(f"Error in crawl_news_sources: {e}")
+        logger.error(
+            "News crawling task failed",
+            error=str(e),
+            exc_info=True
+        )
 
 async def _monitor_exchange_announcements_async():
     """异步监控交易所公告（示例占位）"""
-    # TODO: 实现交易所 API 监控逻辑
-    print("Monitoring exchange announcements...")
+    # Implement exchange API monitoring logic
+    logger = get_task_logger("exchange_monitor")
+    logger.info(
+        "Exchange monitoring task started",
+        action="exchange_monitoring",
+        status="placeholder"
+    )
+    # NOTE: Exchange monitoring implementation pending - will be added
+    # when exchange API integrations are implemented
     return
 
 @celery_app.task
 def monitor_exchange_announcements():
     """监控交易所公告（Celery 同步任务包装异步逻辑）"""
+    logger = get_task_logger("exchange_monitor")
     try:
+        logger.info("Starting exchange monitoring task")
         asyncio.run(_monitor_exchange_announcements_async())
+        logger.info("Exchange monitoring task completed")
     except Exception as e:
-        print(f"Error in monitor_exchange_announcements: {e}")
+        logger.error(
+            "Exchange monitoring task failed",
+            error=str(e),
+            exc_info=True
+        )

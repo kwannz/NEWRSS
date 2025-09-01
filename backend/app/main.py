@@ -6,21 +6,29 @@ from socketio import ASGIApp
 from contextlib import asynccontextmanager
 from app.core.settings import settings
 from app.core.database import engine, Base
+from app.core.logging import setup_logging, main_logger, database_logger, websocket_logger
 from app.api.news import router as news_router
 from app.api.auth import router as auth_router
 from app.api.sources import router as sources_router
 from app.services.telegram_webhook import router as telegram_router
 
+# Initialize logging before any other operations
+setup_logging()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    main_logger.info("Starting application startup sequence")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    print("Database tables created")
+    database_logger.info("Database tables created successfully")
+    main_logger.info("Application startup completed")
     yield
     # Shutdown
+    main_logger.info("Starting application shutdown sequence")
     await engine.dispose()
-    print("Database connection closed")
+    database_logger.info("Database connection closed")
+    main_logger.info("Application shutdown completed")
 
 app = FastAPI(title="NEWRSS API", version="1.0.0", lifespan=lifespan)
 
@@ -55,11 +63,11 @@ async def health():
 
 @sio.event
 async def connect(sid, environ):
-    print(f"Socket connected: {sid}")
+    websocket_logger.info("WebSocket connection established", socket_id=sid, client_info=environ.get('REMOTE_ADDR'))
 
 @sio.event
 async def disconnect(sid):
-    print(f"Socket disconnected: {sid}")
+    websocket_logger.info("WebSocket connection closed", socket_id=sid)
 
 async def broadcast_news(news_item: dict):
     await sio.emit('new_news', news_item)

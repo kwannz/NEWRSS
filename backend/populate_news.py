@@ -5,10 +5,13 @@ from app.core.database import engine, Base
 from app.models.news import NewsItem
 from app.services.rss_fetcher import RSSFetcher
 from sqlalchemy import select
+from app.core.logging import get_logger
+
+logger = get_logger("populate_news")
 
 async def populate_news_database():
     """手动填充新闻数据库"""
-    print("Populating news database...")
+    logger.info("Starting news database population")
     
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -38,7 +41,7 @@ async def populate_news_database():
     
     async with RSSFetcher() as fetcher:
         news_items = await fetcher.fetch_multiple_feeds(sources)
-        print(f"Fetched {len(news_items)} news items from RSS feeds")
+        logger.info("RSS feeds fetched", total_items=len(news_items))
         
         from sqlalchemy.ext.asyncio import async_sessionmaker
         SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
@@ -69,11 +72,11 @@ async def populate_news_database():
                     session.add(news_obj)
             
             await session.commit()
-            print(f"Added {len(new_items)} new news items to database")
+            logger.info("News items added to database", new_items_count=len(new_items))
             
             total_result = await session.execute(select(NewsItem))
             total_count = len(total_result.scalars().all())
-            print(f"Total news items in database: {total_count}")
+            logger.info("Database population completed", total_items_in_db=total_count)
 
 if __name__ == "__main__":
     asyncio.run(populate_news_database())

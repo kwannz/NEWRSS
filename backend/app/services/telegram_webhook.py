@@ -5,9 +5,11 @@ from telegram.ext import Application
 from typing import Optional
 from app.core.settings import settings
 from app.services.telegram_bot import TelegramBot
+from app.core.logging import get_service_logger
 
 # Global variable to store the Telegram application
 telegram_app: Application = None
+webhook_logger = get_service_logger("telegram_webhook")
 
 @asynccontextmanager
 async def telegram_lifespan():
@@ -28,7 +30,11 @@ async def telegram_lifespan():
                     secret_token=settings.TELEGRAM_SECRET_TOKEN,
                     drop_pending_updates=True,
                 )
-                print(f"Telegram webhook set to: {settings.TELEGRAM_WEBHOOK_URL}")
+                webhook_logger.info(
+                    "Telegram webhook configured",
+                    webhook_url=settings.TELEGRAM_WEBHOOK_URL,
+                    has_secret_token=bool(settings.TELEGRAM_SECRET_TOKEN)
+                )
         
         yield
         
@@ -60,5 +66,10 @@ async def telegram_webhook(
         await telegram_app.process_update(update)
         return {"ok": True}
     except Exception as e:
-        print(f"Error processing Telegram update: {e}")
+        webhook_logger.error(
+            "Telegram webhook processing failed",
+            error=str(e),
+            update_data=data if 'data' in locals() else None,
+            exc_info=True
+        )
         raise HTTPException(status_code=500, detail="Internal server error")

@@ -297,9 +297,15 @@ def get_all_sources() -> List[Dict]:
     return ALL_RSS_SOURCES
 
 if __name__ == "__main__":
-    print("📊 已验证RSS源统计:")
-    print(f"   ✅ 总计: {len(ALL_RSS_SOURCES)} 个")
-    print(f"   🏦 交易所: {len(EXCHANGE_RSS_SOURCES)} 个")
-    print(f"   📰 新闻媒体: {len(CRYPTO_NEWS_SOURCES)} 个")
-    print(f"   🎨 专业类别: {len(DEFI_NFT_SOURCES)} 个")
-    print(f"   🇨🇳 中文源: {len(CHINESE_NEWS_SOURCES)} 个")
+    # Use print for script execution since logging may not be initialized
+    from app.core.logging import get_logger
+    logger = get_logger("rss_sources_stats")
+    
+    logger.info(
+        "RSS source verification statistics",
+        total_sources=len(ALL_RSS_SOURCES),
+        exchange_sources=len(EXCHANGE_RSS_SOURCES),
+        news_sources=len(CRYPTO_NEWS_SOURCES),
+        specialized_sources=len(DEFI_NFT_SOURCES),
+        chinese_sources=len(CHINESE_NEWS_SOURCES)
+    )

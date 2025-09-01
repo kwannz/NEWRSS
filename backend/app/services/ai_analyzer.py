@@ -3,10 +3,12 @@ from typing import Dict, List
 import re
 import json
 from app.core.settings import settings
+from app.core.logging import get_service_logger
 
 class AINewsAnalyzer:
     def __init__(self, api_key: str = None):
         self.client = AsyncOpenAI(api_key=api_key or settings.OPENAI_API_KEY)
+        self.logger = get_service_logger("ai_analyzer")
     
     async def analyze_news(self, news_item: dict) -> dict:
         """综合分析新闻"""
@@ -52,7 +54,12 @@ class AINewsAnalyzer:
             )
             return (response.choices[0].message.content or "").strip()
         except Exception as e:
-            print(f"Error generating summary: {e}")
+            self.logger.error(
+                "AI summary generation failed",
+                content_length=len(content),
+                error=str(e),
+                exc_info=True
+            )
             return "摘要生成失败"
     
     async def analyze_sentiment(self, content: str) -> float:
@@ -80,7 +87,12 @@ class AINewsAnalyzer:
             sentiment_text = response.choices[0].message.content or "0"
             return float(sentiment_text.strip())
         except Exception as e:
-            print(f"Error analyzing sentiment: {e}")
+            self.logger.error(
+                "AI sentiment analysis failed",
+                content_length=len(content),
+                error=str(e),
+                exc_info=True
+            )
             return 0.0
     
     async def calculate_market_impact(self, news_item: dict) -> int:

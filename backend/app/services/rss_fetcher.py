@@ -5,10 +5,12 @@ import feedparser
 from datetime import datetime
 import hashlib
 from app.core.redis import get_redis
+from app.core.logging import get_service_logger
 
 class RSSFetcher:
     def __init__(self):
         self.session = None
+        self.logger = get_service_logger("rss_fetcher")
     
     async def __aenter__(self):
         self.session = aiohttp.ClientSession(
@@ -24,14 +26,24 @@ class RSSFetcher:
         try:
             async with self.session.get(url) as response:
                 if response.status != 200:
-                    print(f"Error fetching {url}: HTTP {response.status}")
+                    self.logger.error(
+                        "RSS feed fetch failed",
+                        url=url,
+                        http_status=response.status,
+                        source_name=source_name
+                    )
                     return []
                 
                 content = await response.text()
                 feed = feedparser.parse(content)
                 
                 if feed.bozo:
-                    print(f"Warning: Feed {url} may have parsing issues")
+                    self.logger.warning(
+                        "RSS feed has parsing issues",
+                        url=url,
+                        bozo_exception=str(feed.bozo_exception) if hasattr(feed, 'bozo_exception') else None,
+                        source_name=source_name
+                    )
                 
                 items = []
                 for entry in feed.entries:
@@ -62,10 +74,21 @@ class RSSFetcher:
                 
                 return items
         except asyncio.TimeoutError:
-            print(f"Timeout fetching {url}")
+            self.logger.error(
+                "RSS feed fetch timeout",
+                url=url,
+                source_name=source_name,
+                timeout_seconds=15
+            )
             return []
         except Exception as e:
-            print(f"Error fetching {url}: {e}")
+            self.logger.error(
+                "RSS feed fetch error",
+                url=url,
+                source_name=source_name,
+                error=str(e),
+                exc_info=True
+            )
             return []
     
     async def fetch_multiple_feeds(self, sources: List[Dict[str, str]]) -> List[Dict]:
@@ -86,7 +109,13 @@ class RSSFetcher:
                     item["category"] = sources[i].get("category", "general")
                 all_items.extend(result)
             elif isinstance(result, Exception):
-                print(f"Error processing source {sources[i]['url']}: {result}")
+                self.logger.error(
+                    "RSS source processing error",
+                    url=sources[i]['url'],
+                    source_name=sources[i].get('name'),
+                    error=str(result),
+                    exc_info=True
+                )
         
         return all_items
     
