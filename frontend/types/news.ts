@@ -42,9 +42,28 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  isActive: boolean;
-  telegramId?: string;
-  telegramUsername?: string;
+  is_active: boolean;
+  telegram_id?: string;
+  telegram_username?: string;
+  urgent_notifications?: boolean;
+  daily_digest?: boolean;
+  min_importance_score?: number;
+  max_daily_notifications?: number;
+  timezone?: string;
+}
+
+export interface UserPreferences {
   urgentNotifications: boolean;
   dailyDigest: boolean;
+  browserNotifications: boolean;
+  telegramNotifications: boolean;
+  minImportance: number;
+  maxDailyNotifications: number;
+  categories: string[];
+  sources: string[];
+}
+
+export interface AuthTokenResponse {
+  access_token: string;
+  token_type: string;
 }

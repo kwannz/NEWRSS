@@ -15,6 +15,10 @@ class UserSubscription(Base):
     urgent_only = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="subscriptions")
+    source = relationship("NewsSource")
 
 class UserCategory(Base):
     __tablename__ = "user_categories"
@@ -23,4 +27,9 @@ class UserCategory(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     category = Column(String, nullable=False)
     is_subscribed = Column(Boolean, default=True)
+    min_importance = Column(Integer, default=1)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="categories")

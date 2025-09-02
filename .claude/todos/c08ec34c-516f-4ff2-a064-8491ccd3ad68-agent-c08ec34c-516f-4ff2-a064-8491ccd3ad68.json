@@ -1,0 +1,42 @@
+[
+  {
+    "content": "Create comprehensive test cases for all major user flows",
+    "status": "completed",
+    "activeForm": "Creating comprehensive test cases for all major user flows"
+  },
+  {
+    "content": "Test homepage functionality and navigation",
+    "status": "completed",
+    "activeForm": "Testing homepage functionality and navigation"
+  },
+  {
+    "content": "Test product browsing and search functionality",
+    "status": "pending",
+    "activeForm": "Testing product browsing and search functionality"
+  },
+  {
+    "content": "Test shopping cart operations",
+    "status": "pending",
+    "activeForm": "Testing shopping cart operations"
+  },
+  {
+    "content": "Test product detail pages",
+    "status": "pending",
+    "activeForm": "Testing product detail pages"
+  },
+  {
+    "content": "Test responsive design across devices",
+    "status": "pending",
+    "activeForm": "Testing responsive design across devices"
+  },
+  {
+    "content": "Test error handling and edge cases",
+    "status": "pending",
+    "activeForm": "Testing error handling and edge cases"
+  },
+  {
+    "content": "Fix critical API 500 error bug",
+    "status": "in_progress",
+    "activeForm": "Fixing critical API 500 error bug"
+  }
+]

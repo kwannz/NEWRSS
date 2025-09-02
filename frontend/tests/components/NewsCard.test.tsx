@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { NewsCard } from '@/components/NewsCard'
 import { NewsItem } from '@/types/news'
+import { jest } from '@jest/globals'
 
 const mockNewsItem: NewsItem = {
   id: 1,
@@ -161,4 +162,4 @@ describe('NewsCard', () => {
     const timeElement = screen.getByText(/ago|分钟前|小时前|天前/)
     expect(timeElement).toBeInTheDocument()
   })
-}
+})

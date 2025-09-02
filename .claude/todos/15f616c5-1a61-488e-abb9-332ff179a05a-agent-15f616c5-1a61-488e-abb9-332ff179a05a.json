@@ -1,0 +1,22 @@
+[
+  {
+    "content": "复制项目到新目录",
+    "status": "in_progress",
+    "activeForm": "复制项目到新目录中"
+  },
+  {
+    "content": "在新目录安装依赖",
+    "status": "pending",
+    "activeForm": "在新目录安装依赖中"
+  },
+  {
+    "content": "启动前端开发服务器",
+    "status": "pending",
+    "activeForm": "启动前端开发服务器中"
+  },
+  {
+    "content": "验证前端运行状态",
+    "status": "pending",
+    "activeForm": "验证前端运行状态中"
+  }
+]

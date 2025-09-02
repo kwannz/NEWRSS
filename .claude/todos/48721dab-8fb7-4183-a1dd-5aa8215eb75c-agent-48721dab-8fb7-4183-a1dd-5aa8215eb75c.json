@@ -1,0 +1,92 @@
+[
+  {
+    "content": "Set up Prisma seed script with brands, categories, products, and images",
+    "status": "completed",
+    "activeForm": "Setting up Prisma seed script with demo data"
+  },
+  {
+    "content": "Add npm scripts for database management (db:generate, db:push, db:seed, db:studio)",
+    "status": "completed",
+    "activeForm": "Adding npm scripts for database management"
+  },
+  {
+    "content": "Update README with database setup instructions",
+    "status": "completed",
+    "activeForm": "Updating README with database setup instructions"
+  },
+  {
+    "content": "Create .env.local.example with all required environment variables",
+    "status": "completed",
+    "activeForm": "Creating .env.local.example with environment variables"
+  },
+  {
+    "content": "Implement GET /api/products API with pagination, filtering, and search",
+    "status": "completed",
+    "activeForm": "Implementing GET /api/products API endpoint"
+  },
+  {
+    "content": "Implement GET /api/products/[id] API endpoint",
+    "status": "completed",
+    "activeForm": "Implementing GET /api/products/[id] API endpoint"
+  },
+  {
+    "content": "Refactor products page to fetch from API instead of mock data",
+    "status": "completed",
+    "activeForm": "Refactoring products page to use API data"
+  },
+  {
+    "content": "Set up NextAuth with Credentials provider and Prisma adapter",
+    "status": "completed",
+    "activeForm": "Setting up NextAuth with Credentials provider"
+  },
+  {
+    "content": "Create authentication pages (login, signup)",
+    "status": "completed",
+    "activeForm": "Creating authentication pages"
+  },
+  {
+    "content": "Implement session-based admin route protection",
+    "status": "completed",
+    "activeForm": "Implementing admin route protection"
+  },
+  {
+    "content": "Implement POST /api/orders endpoint for order creation",
+    "status": "completed",
+    "activeForm": "Implementing POST /api/orders endpoint"
+  },
+  {
+    "content": "Connect checkout flow to orders API",
+    "status": "completed",
+    "activeForm": "Connecting checkout flow to orders API"
+  },
+  {
+    "content": "Create Stripe PaymentIntent API route",
+    "status": "completed",
+    "activeForm": "Creating Stripe PaymentIntent API route"
+  },
+  {
+    "content": "Fix remaining SQLite compatibility issues in seed.ts",
+    "status": "completed",
+    "activeForm": "Fixing remaining SQLite compatibility issues in seed.ts"
+  },
+  {
+    "content": "Update admin dashboard to show real orders from database",
+    "status": "completed",
+    "activeForm": "Updating admin dashboard with real data"
+  },
+  {
+    "content": "Run database setup and start development server on port 3080",
+    "status": "in_progress",
+    "activeForm": "Setting up database and starting server on port 3080"
+  },
+  {
+    "content": "Integrate basic Stripe Elements in checkout",
+    "status": "pending",
+    "activeForm": "Integrating basic Stripe Elements"
+  },
+  {
+    "content": "Add basic tests for API endpoints and checkout flow",
+    "status": "pending",
+    "activeForm": "Adding basic tests for APIs and checkout"
+  }
+]

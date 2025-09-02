@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { NewsItem } from '@/types/news';
-import { useNewsStore } from '@/lib/store';
+import { useNewsStore, useNotificationStore } from '@/lib/store';
 
 export function useRealTimeNews() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const { addNews, setConnected } = useNewsStore();
+  const { preferences, browserPermission } = useNotificationStore();
 
   useEffect(() => {
     const socketInstance = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000');
@@ -25,27 +26,27 @@ export function useRealTimeNews() {
     });
     
     socketInstance.on('urgent_news', (newsItem: NewsItem) => {
-      // 显示紧急新闻通知
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        if (Notification.permission === 'granted') {
+      // Add to news feed first
+      addNews(newsItem);
+      
+      // Show browser notification if enabled and permitted
+      if (
+        preferences.browserNotifications && 
+        preferences.urgentNotifications &&
+        typeof window !== 'undefined' && 
+        'Notification' in window &&
+        browserPermission === 'granted'
+      ) {
+        // Check importance threshold
+        if (newsItem.importanceScore >= preferences.minImportance) {
           new Notification(newsItem.title, {
-            body: newsItem.content.substring(0, 100) + '...',
+            body: newsItem.summary || newsItem.content.substring(0, 100) + '...',
             icon: '/favicon.ico',
-            tag: 'urgent-news'
-          });
-        } else if (Notification.permission !== 'denied') {
-          Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-              new Notification(newsItem.title, {
-                body: newsItem.content.substring(0, 100) + '...',
-                icon: '/favicon.ico',
-                tag: 'urgent-news'
-              });
-            }
+            tag: 'urgent-news',
+            requireInteraction: true
           });
         }
       }
-      addNews(newsItem);
     });
     
     setSocket(socketInstance);
@@ -53,7 +54,7 @@ export function useRealTimeNews() {
     return () => {
       socketInstance.close();
     };
-  }, [addNews, setConnected]);
+  }, [addNews, setConnected, preferences, browserPermission]);
 
   return { socket };
 }

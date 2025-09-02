@@ -1,0 +1,52 @@
+[
+  {
+    "content": "检查现有Docker配置文件",
+    "status": "in_progress",
+    "activeForm": "正在检查现有Docker配置文件"
+  },
+  {
+    "content": "创建或更新后端Rust引擎的Dockerfile",
+    "status": "pending",
+    "activeForm": "创建或更新后端Rust引擎的Dockerfile"
+  },
+  {
+    "content": "创建或更新Python API的Dockerfile",
+    "status": "pending",
+    "activeForm": "创建或更新Python API的Dockerfile"
+  },
+  {
+    "content": "创建或更新前端的Dockerfile",
+    "status": "pending",
+    "activeForm": "创建或更新前端的Dockerfile"
+  },
+  {
+    "content": "创建完整的docker-compose.yml配置",
+    "status": "pending",
+    "activeForm": "创建完整的docker-compose.yml配置"
+  },
+  {
+    "content": "配置数据库和Redis服务",
+    "status": "pending",
+    "activeForm": "配置数据库和Redis服务"
+  },
+  {
+    "content": "配置监控服务(Prometheus/Grafana)",
+    "status": "pending",
+    "activeForm": "配置监控服务(Prometheus/Grafana)"
+  },
+  {
+    "content": "创建环境变量配置文件",
+    "status": "pending",
+    "activeForm": "创建环境变量配置文件"
+  },
+  {
+    "content": "编写启动脚本",
+    "status": "pending",
+    "activeForm": "编写启动脚本"
+  },
+  {
+    "content": "测试Docker部署",
+    "status": "pending",
+    "activeForm": "测试Docker部署"
+  }
+]

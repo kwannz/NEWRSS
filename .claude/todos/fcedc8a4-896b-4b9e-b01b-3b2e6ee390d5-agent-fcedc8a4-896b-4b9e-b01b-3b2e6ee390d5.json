@@ -1,0 +1,42 @@
+[
+  {
+    "content": "修复API路由的Next.js 15 params问题",
+    "status": "completed",
+    "activeForm": "修复API路由的Next.js 15 params问题"
+  },
+  {
+    "content": "检查库存同步逻辑",
+    "status": "completed",
+    "activeForm": "检查库存同步逻辑"
+  },
+  {
+    "content": "测试产品页面库存更新同步",
+    "status": "completed",
+    "activeForm": "测试产品页面库存更新同步"
+  },
+  {
+    "content": "识别并解决数据不一致问题",
+    "status": "completed",
+    "activeForm": "识别并解决数据不一致问题"
+  },
+  {
+    "content": "检查数据库查询逻辑",
+    "status": "completed",
+    "activeForm": "检查数据库查询逻辑"
+  },
+  {
+    "content": "在产品更新API中清除缓存",
+    "status": "completed",
+    "activeForm": "在产品更新API中清除缓存"
+  },
+  {
+    "content": "重新启动网站服务",
+    "status": "completed",
+    "activeForm": "重新启动网站服务"
+  },
+  {
+    "content": "测试修复后的库存同步功能",
+    "status": "in_progress",
+    "activeForm": "测试修复后的库存同步功能"
+  }
+]

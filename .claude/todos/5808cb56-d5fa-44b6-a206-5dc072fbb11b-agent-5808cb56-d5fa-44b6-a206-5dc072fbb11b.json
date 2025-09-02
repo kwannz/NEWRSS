@@ -1,0 +1,32 @@
+[
+  {
+    "content": "创建用户账户系统 - /account 页面和相关 API",
+    "status": "completed",
+    "activeForm": "Creating user account system pages and APIs"
+  },
+  {
+    "content": "实现心愿单功能 - /wishlist 页面和 API",
+    "status": "in_progress",
+    "activeForm": "Implementing wishlist functionality"
+  },
+  {
+    "content": "创建动态产品分类页面 - /products/[category]",
+    "status": "pending",
+    "activeForm": "Creating dynamic product category pages"
+  },
+  {
+    "content": "实现订单追踪页面 - /track-order",
+    "status": "pending",
+    "activeForm": "Implementing order tracking page"
+  },
+  {
+    "content": "修复 SEO 元数据配置",
+    "status": "pending",
+    "activeForm": "Fixing SEO metadata configuration"
+  },
+  {
+    "content": "实现错误处理页面 (404, error, loading)",
+    "status": "pending",
+    "activeForm": "Implementing error handling pages"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "content": "检查当前Docker配置和端口使用情况",
+    "status": "completed",
+    "activeForm": "Checking current Docker configuration and port usage"
+  },
+  {
+    "content": "创建前端Docker配置文件",
+    "status": "completed",
+    "activeForm": "Creating frontend Docker configuration"
+  },
+  {
+    "content": "实现基础前端框架和路由",
+    "status": "completed",
+    "activeForm": "Implementing basic frontend framework and routing"
+  },
+  {
+    "content": "集成设计规范的暗色主题样式",
+    "status": "completed",
+    "activeForm": "Integrating dark theme styles from design spec"
+  },
+  {
+    "content": "配置前端与后端API的连接",
+    "status": "in_progress",
+    "activeForm": "Configuring frontend-backend API connection"
+  },
+  {
+    "content": "部署和测试前端访问",
+    "status": "pending",
+    "activeForm": "Deploying and testing frontend access"
+  }
+]

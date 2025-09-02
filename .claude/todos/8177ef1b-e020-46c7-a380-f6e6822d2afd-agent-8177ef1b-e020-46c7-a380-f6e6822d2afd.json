@@ -1,0 +1,17 @@
+[
+  {
+    "content": "Test individual product pages - Add to Cart functionality",
+    "status": "in_progress",
+    "activeForm": "Testing individual product pages - Add to Cart functionality"
+  },
+  {
+    "content": "Perform comprehensive website testing across all pages",
+    "status": "pending",
+    "activeForm": "Performing comprehensive website testing across all pages"
+  },
+  {
+    "content": "Fix all bugs discovered during testing",
+    "status": "pending",
+    "activeForm": "Fixing all bugs discovered during testing"
+  }
+]

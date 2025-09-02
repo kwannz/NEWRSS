@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Complete API test configuration fixes for Next.js environment",
+    "status": "pending",
+    "activeForm": "Completing API test configuration fixes for Next.js environment"
+  },
+  {
+    "content": "Set up E2E testing suite with Playwright",
+    "status": "completed",
+    "activeForm": "Setting up E2E testing suite with Playwright"
+  },
+  {
+    "content": "Implement rate limiting middleware",
+    "status": "completed",
+    "activeForm": "Implementing rate limiting middleware"
+  },
+  {
+    "content": "Configure production environment variables",
+    "status": "completed",
+    "activeForm": "Configuring production environment variables"
+  },
+  {
+    "content": "Set up monitoring and analytics (Sentry, Google Analytics)",
+    "status": "completed",
+    "activeForm": "Setting up monitoring and analytics"
+  },
+  {
+    "content": "Prepare for production deployment",
+    "status": "in_progress",
+    "activeForm": "Preparing for production deployment"
+  }
+]
