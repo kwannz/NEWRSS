@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { Header } from '@/components/layout/Header'
 import { NewsFilterComponent } from '@/components/filters/NewsFilter'
 import { NotificationSettings } from '@/components/settings/NotificationSettings'
+import { SettingsPage } from '@/components/settings/SettingsPage'
 import { NewsCard } from '@/components/NewsCard'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -188,18 +189,9 @@ export function Dashboard() {
 
       {/* Settings Modal */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
           <DialogTitle className="sr-only">设置</DialogTitle>
-          <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4">设置</h2>
-            <p className="text-muted-foreground">设置页面尚未完全开发</p>
-            <Button 
-              className="mt-4" 
-              onClick={handleCloseSettings}
-            >
-              关闭
-            </Button>
-          </div>
+          <SettingsPage onClose={handleCloseSettings} />
         </DialogContent>
       </Dialog>
 

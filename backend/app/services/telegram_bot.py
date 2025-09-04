@@ -11,6 +11,11 @@ from app.repositories.user_repository import UserRepository
 class TelegramBot:
     def __init__(self, token: str):
         self.token = token
+        if not token:
+            self.bot = None
+            self.app = None
+            self.logger = get_service_logger("telegram_bot")
+            return
         self.bot = Bot(token)
         self.app = Application.builder().token(token).build()
         self.logger = get_service_logger("telegram_bot")

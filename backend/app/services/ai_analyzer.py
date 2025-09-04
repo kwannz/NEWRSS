@@ -51,7 +51,8 @@ class AINewsAnalyzer:
             api_key: OpenAI API key. If None, uses settings.OPENAI_API_KEY.
                     Service will gracefully degrade if no key is provided.
         """
-        self.client = AsyncOpenAI(api_key=api_key or settings.OPENAI_API_KEY)
+        api_key_to_use = api_key or settings.OPENAI_API_KEY
+        self.client = AsyncOpenAI(api_key=api_key_to_use) if api_key_to_use else None
         self.logger = get_service_logger("ai_analyzer")
     
     async def analyze_news(self, news_item: Dict[str, Any]) -> Dict[str, Any]:
@@ -80,6 +81,14 @@ class AINewsAnalyzer:
             Failed analysis tasks return safe default values to ensure
             the service remains functional even with API issues.
         """
+        if not self.client:
+            return {
+                'summary': news_item.get('title', 'No summary available'),
+                'sentiment': 0.0,
+                'key_info': {},
+                'market_impact': 3
+            }
+            
         analysis: Dict[str, Any] = {}
         
         # Execute multiple analysis tasks in parallel for optimal performance

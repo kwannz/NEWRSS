@@ -12,7 +12,7 @@ interface AuthModalProps {
   trigger?: React.ReactNode
 }
 
-export function AuthModal({ children, trigger }: AuthModalProps) {
+export function AuthModal({ trigger }: AuthModalProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [mode, setMode] = useState<'login' | 'register'>('login')
 

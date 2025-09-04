@@ -3,7 +3,7 @@ Security headers middleware for comprehensive protection against web attacks
 """
 from typing import Dict, Optional, List
 from fastapi import Request, Response
-from fastapi.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.settings import settings
 from app.core.logging import main_logger
 
@@ -204,8 +204,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response.headers["X-API-Version"] = "1.0"
         
         # Remove potentially sensitive server headers
-        response.headers.pop("server", None)
-        response.headers.pop("x-powered-by", None)
+        if "server" in response.headers:
+            del response.headers["server"]
+        if "x-powered-by" in response.headers:
+            del response.headers["x-powered-by"]
         
         return response
 

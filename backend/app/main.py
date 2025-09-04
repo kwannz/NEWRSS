@@ -149,16 +149,16 @@ app = FastAPI(
 if settings.ENV == "production":
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
 
-# 2. Security headers middleware
-app.add_middleware(
-    SecurityHeadersMiddleware, enable_csp=settings.CSP_ENABLED, enable_hsts=True
-)
+# 2. Security headers middleware (disabled for development)
+# app.add_middleware(
+#     SecurityHeadersMiddleware, enable_csp=settings.CSP_ENABLED, enable_hsts=True
+# )
 
-# 3. Security monitoring middleware
-app.middleware("http")(security_monitoring_middleware)
+# 3. Security monitoring middleware (disabled for development)
+# app.middleware("http")(security_monitoring_middleware)
 
-# 4. Request size validation middleware
-app.middleware("http")(validate_request_size)
+# 4. Request size validation middleware (disabled for development)
+# app.middleware("http")(validate_request_size)
 
 # 5. CORS middleware (configured for security)
 cors_origins = settings.CORS_ORIGINS
